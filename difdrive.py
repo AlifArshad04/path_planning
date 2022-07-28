@@ -45,6 +45,26 @@ class Rover:
     def draw(self, map):
         map.blit(self.rotated, self.rect)
 
+    def move(self, event=None):
+        if event is not None:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_i:
+                    self.vl += 0.001*self.m2p
+                elif event.key == pygame.K_k:
+                    self.vl -= 0.001*self.m2p
+                elif event.key == pygame.K_l:
+                    self.vr += 0.001*self.m2p
+                elif event.key == pygame.K_j:
+                    self.vr -= 0.001*self.m2p
+        # setting movements
+        self.x += ((self.vl+self.vr)/2)*math.cos(self.theta)*dt
+        self.y -= ((self.vl+self.vr)/2)*math.cos(self.theta)*dt
+        self.theta += (self.vr-self.vl)/self.w*dt
+
+        self.rotated = pygame.transform.rotozoom(
+            self.img, math.degrees(self.theta), 1)
+        self.rect = self.rotated.get_rect(center=(self.x, self.y))
+
 
 # initialisation
 pygame.init()
@@ -65,13 +85,20 @@ envir = Envir(dims)
 rover = Rover(
     start, "/home/alif/Projects/path_planning/rover.png", 0.01*3779.52)
 
+dt = 0
+lasttime = pygame.time.get_ticks()
+
 # simulation loop
 while running:
     # activate quit button
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        rover.move(event)
 
+    dt = (pygame.time.get_ticks()-lasttime)/1000
+    lasttime = pygame.time.get_ticks()
     pygame.display.update()
     envir.map.fill(envir.black)
+    rover.move()
     rover.draw(envir.map)
